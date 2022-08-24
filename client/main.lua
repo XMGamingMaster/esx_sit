@@ -40,7 +40,7 @@ Citizen.CreateThread(function()
 
 		if sitting then
 			headsUp('Appuyez sur ~INPUT_VEH_DUCK~ pour vous lever.')
-			if IsControlJustPressed(0, Keys['X']) then
+			if IsControlJustPressed(0, 73) then
 				ClearPedTasks(ped)
 				sitting = false
 				SetEntityCoords(ped, lastPosition)
@@ -70,7 +70,7 @@ Citizen.CreateThread(function()
 				false,
 				false
 			)
-			if IsControlJustPressed(0, Keys['E']) then
+			if IsControlJustPressed(0, 51) then
 				sit(object)
 			end
 		elseif not closest.object then
