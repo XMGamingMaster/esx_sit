@@ -49,7 +49,7 @@ Citizen.CreateThread(function()
 				TriggerServerEvent('esx_sit:unoccupyObject', currentObject)
 				currentObject = nil
 			end
-		elseif closest.object and DoesEntityExist(closest.object) and (closest.dist < Config.MaxDistance) then
+		elseif closest.object and not sitting and DoesEntityExist(closest.object) and (closest.dist < Config.MaxDistance) then
 			headsUp('Appuyez sur ~INPUT_CONTEXT~ pouyr vous asseoir.')
 			local objCoords = GetEntityCoords(closest.object)
 			DrawMarker(
