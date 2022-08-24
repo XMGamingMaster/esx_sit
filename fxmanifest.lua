@@ -6,5 +6,8 @@ description 'This script allow you to sit almost everywhere'
 version '1.0.2'
 
 shared_script 'config.lua'
-client_script 'client/main.lua'
+client_scripts {
+	'client/entity.lua',
+	'client/main.lua'
+}
 server_script 'server/main.lua'

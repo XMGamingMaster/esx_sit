@@ -4,63 +4,59 @@ local currentObject = nil
 
 local validObjects = {}
 
-local function headsUp(text)
-	SetTextComponentFormat('STRING')
-	AddTextComponentString(text)
-	DisplayHelpTextFromStringLabel(0, 0, 1, -1)
-end
-
 Citizen.CreateThread(function()
 	for i, v in ipairs(Config.Sitable) do
-		table.insert(validObjects, v.prop)
+		validObjects[GetHashKey(v.prop)] = true
+	end
+end)
+
+local closest = { object = nil, dist = -1 }
+Citizen.CreateThread(function()
+	while true do
+		if not sitting then
+			local ped = PlayerPedId()
+			local coords = GetEntityCoords(ped)
+			closest = { object = nil, dist = -1 }
+			for obj in EnumerateObjects() do
+				local model = GetEntityModel(obj)
+				if validObjects[model] then
+					local dist = #(coords - GetEntityCoords(obj))
+					if (closest.object == nil) or (closest.dist > dist) then
+						closest = { object = obj, dist = dist }
+					end
+				end
+			end
+		end
+
+		Citizen.Wait(250)
 	end
 end)
 
 Citizen.CreateThread(function()
 	while true do
-		local ped = PlayerPedId()
-		local coords = GetEntityCoords(ped)
-		local closest = { object = nil, dist = -1 }
-		for i, name in ipairs(validObjects) do
-			local obj = GetClosestObjectOfType(
-				coords.x,
-				coords.y,
-				coords.z,
-				3.0,
-				GetHashKey(name),
-				false,
-				true,
-				true
-			)
-			local dist = GetDistanceBetweenCoords(coords, GetEntityCoords(obj), true)
-			if (closest.object == nil) or (closest.dist > dist) then
-				closest = { object = obj, dist = dist }
-			end
-		end
-
 		if sitting then
-			headsUp('Appuyez sur ~INPUT_VEH_DUCK~ pour vous lever.')
-			if IsControlJustPressed(0, 73) then
+			DisableCamCollisionForEntity(currentObject)
+			if IsControlJustPressed(0, 51) then
+				local ped = PlayerPedId()
 				ClearPedTasks(ped)
 				sitting = false
-				SetEntityCoords(ped, lastPosition)
 				FreezeEntityPosition(ped, false)
 				FreezeEntityPosition(currentObject, false)
+				SetEntityCoords(ped, lastPosition)
 				TriggerServerEvent('esx_sit:unoccupyObject', currentObject)
 				currentObject = nil
 			end
-		elseif closest.object and not sitting and DoesEntityExist(closest.object) and (closest.dist < Config.MaxDistance) then
-			headsUp('Appuyez sur ~INPUT_CONTEXT~ pouyr vous asseoir.')
+		elseif not sitting and closest.object and DoesEntityExist(closest.object) and (closest.dist < Config.MaxDistance) then
 			local objCoords = GetEntityCoords(closest.object)
 			DrawMarker(
-				0,
-				objCoords + vector3(0, 0, 1.5),
+				27,
+				objCoords + vector3(0, 0, 0.05),
 				vector3(0, 0, 0),
 				vector3(0, 0, 0),
-				vector3(0.5, 0.5, 0.5),
-				0,
+				vector3(1, 1, 1),
 				255,
-				0,
+				255,
+				255,
 				100,
 				false,
 				true,
@@ -71,11 +67,10 @@ Citizen.CreateThread(function()
 				false
 			)
 			if IsControlJustPressed(0, 51) then
-				sit(object)
+				sit(closest.object)
 			end
-		elseif not closest.object then
-			Citizen.Wait(2000)
 		end
+
 		Citizen.Wait(0)
 	end
 end)
@@ -85,7 +80,8 @@ function sit(object)
 	local isOccupied = state.isOccupied or false
 	if not isOccupied then
 		local ped = PlayerPedId()
-		lastPosition = GetEntityCoords(ped)
+		local height = GetEntityHeightAboveGround(ped)
+		lastPosition = GetEntityCoords(ped) - vector3(0, 0, height)
 		currentObject = object
 		TriggerServerEvent('esx_sit:occupyObject', object)
 		FreezeEntityPosition(object, true)
