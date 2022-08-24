@@ -1,4 +1,4 @@
-Config              = {}
+Config = {}
 Config.MaxDistance = 1.5
 
 Config.Sitable = {
