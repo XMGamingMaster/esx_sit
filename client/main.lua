@@ -38,7 +38,18 @@ Citizen.CreateThread(function()
 			end
 		end
 
-		if (closest.dist < Config.MaxDistance) and (sitting == false) and DoesEntityExist(closest.object) then
+		if sitting then
+			headsUp('Appuyez sur ~INPUT_VEH_DUCK~ pour vous lever.')
+			if IsControlJustPressed(0, Keys['X']) then
+				ClearPedTasks(ped)
+				sitting = false
+				SetEntityCoords(ped, lastPosition)
+				FreezeEntityPosition(ped, false)
+				FreezeEntityPosition(currentObject, false)
+				TriggerServerEvent('esx_sit:unoccupyObject', currentObject)
+				currentObject = nil
+			end
+		elseif closest.object and DoesEntityExist(closest.object) and (closest.dist < Config.MaxDistance) then
 			headsUp('Appuyez sur ~INPUT_CONTEXT~ pouyr vous asseoir.')
 			local objCoords = GetEntityCoords(closest.object)
 			DrawMarker(
@@ -62,17 +73,8 @@ Citizen.CreateThread(function()
 			if IsControlJustPressed(0, Keys['E']) then
 				sit(object)
 			end
-		elseif sitting then
-			headsUp('Appuyez sur ~INPUT_VEH_DUCK~ pour vous lever.')
-			if IsControlJustPressed(0, Keys['X']) then
-				ClearPedTasks(ped)
-				sitting = false
-				SetEntityCoords(ped, lastPosition)
-				FreezeEntityPosition(ped, false)
-				FreezeEntityPosition(currentObject, false)
-				TriggerServerEvent('esx_sit:unoccupyObject', currentObject)
-				currentObject = nil
-			end
+		elseif not closest.object then
+			Citizen.Wait(2000)
 		end
 		Citizen.Wait(0)
 	end
